@@ -43,7 +43,11 @@ export class User {
   @DeleteDateColumn()
   deletedAt?: Date;
 
-  @OneToOne(() => Point, (point) => point.user, { cascade: true })
+  @OneToOne(() => Point)
+  @JoinColumn({ name: 'pointId' })
   point: Point;
+
+  // @OneToOne(() => Point, (point) => point.user, { cascade: true })
+  // point: Point;
   //유저와 유저포인트는 1:1 관계
 }

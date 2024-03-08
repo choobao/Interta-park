@@ -15,14 +15,23 @@ import _ from 'lodash';
 export class UserService {
   constructor(
     @InjectRepository(User)
-    @InjectRepository(Point)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Point)
     private readonly pointRepository: Repository<Point>,
     private readonly jwtService: JwtService,
   ) {}
 
   //회원가입
-  async register(email: string, password: string, name: string) {
+  async register(
+    email: string,
+    password: string,
+    passwordConfirm: string,
+    name: string,
+  ) {
+    if (password != passwordConfirm) {
+      throw new ConflictException('비밀번호와 비밀번호 확인은 같아야합니다.');
+    }
+
     const existingUser = await this.findByEmail(email);
     if (existingUser) {
       throw new ConflictException(
@@ -31,18 +40,28 @@ export class UserService {
     }
 
     const hashedPassword = await hash(password, 10);
-    await this.userRepository.save({
+
+    const point = await this.pointRepository.save({
+      point: 1000000,
+    });
+
+    const user = await this.userRepository.save({
       email,
       password: hashedPassword,
       name,
+      pointId: point.pointId,
     });
+
+    console.log(point.pointId);
   }
 
   //로그인
   async login(email: string, password: string) {
     const user = await this.userRepository.findOne({
+      select: ['userId', 'email', 'password'],
       where: { email },
     });
+
     if (_.isNil(user)) {
       throw new UnauthorizedException('이메일을 확인해주세요.');
     }

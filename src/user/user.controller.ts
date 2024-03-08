@@ -13,12 +13,15 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post('register')
-  async register(@Body() createDto: CreateDto) {
-    return await this.userService.register(
+  async register(@Body() createDto: CreateDto, @Res() res) {
+    const createUser = await this.userService.register(
       createDto.email,
       createDto.password,
+      createDto.passwordConfirm,
       createDto.name,
     );
+
+    res.status(201).json({ message: '회원가입이 완료 되었습니다.' });
   }
 
   @Post('login')

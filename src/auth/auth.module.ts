@@ -16,7 +16,7 @@ import { JwtStrategy } from './jwt.strategy';
       }),
       inject: [ConfigService],
     }),
-    UserModule,
+    UserModule, // 추가!
   ],
   providers: [JwtStrategy],
 })

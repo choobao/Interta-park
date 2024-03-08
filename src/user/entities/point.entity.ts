@@ -28,8 +28,7 @@ export class Point {
   point: number;
   //가입시 기본적으로 백만포인트
 
-  @OneToOne(() => User, (user) => user.point)
-  @JoinColumn({ name: 'userId' })
+  @OneToOne(() => User)
   user: User;
   //유저와 유저포인트는 1:1관계
 }
