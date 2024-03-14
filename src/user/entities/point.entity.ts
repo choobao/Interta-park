@@ -5,6 +5,7 @@ import {
   Entity,
   Index,
   JoinColumn,
+  ManyToOne,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -20,15 +21,27 @@ import { User } from './user.entity';
 })
 export class Point {
   @PrimaryGeneratedColumn()
-  pointId: number;
+  id: number;
 
-  @Column({ type: 'int', default: 1000000 })
+  @ManyToOne(() => User, (user) => user.point)
+  @JoinColumn({ name: 'userId' })
+  user: User;
+
+  @Column('int', { name: 'userId', select: true, nullable: false })
+  userId: number;
+
+  // @OneToOne(() => User, (user) => user.point)
+  // user: User;
+  //유저와 유저포인트는 1:1관계
+
+  @Column({ type: 'int', nullable: false })
   @IsInt()
   @Min(0)
   point: number;
-  //가입시 기본적으로 백만포인트
 
-  @OneToOne(() => User)
-  user: User;
-  //유저와 유저포인트는 1:1관계
+  @Column({ type: 'varchar', nullable: false })
+  content: string;
+
+  @CreateDateColumn()
+  history: Date;
 }

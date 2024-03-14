@@ -9,6 +9,12 @@ import { AuthModule } from './auth/auth.module';
 import { User } from './user/entities/user.entity';
 import { UserModule } from './user/user.module';
 import { Point } from './user/entities/point.entity';
+import { PassportModule } from '@nestjs/passport';
+import { Seats } from './concert/entities/seat.entity';
+import { Concerts } from './concert/entities/concert.entity';
+import { Ticketings } from './ticket/entities/ticketing.entity';
+import { ConcertModule } from './concert/concert.module';
+import { TicketModule } from './ticket/ticket.module';
 
 const typeOrmModuleOptions = {
   useFactory: async (
@@ -21,7 +27,7 @@ const typeOrmModuleOptions = {
     host: configService.get('DB_HOST'),
     port: configService.get('DB_PORT'),
     database: configService.get('DB_NAME'),
-    entities: [User, Point], // 엔티티는 반드시 여기에 명시!
+    entities: [User, Point, Concerts, Seats, Ticketings], // 엔티티는 반드시 여기에 명시!
     synchronize: configService.get('DB_SYNC'),
     logging: true,
   }),
@@ -45,6 +51,8 @@ const typeOrmModuleOptions = {
     TypeOrmModule.forRootAsync(typeOrmModuleOptions),
     AuthModule,
     UserModule,
+    ConcertModule,
+    TicketModule,
   ],
   controllers: [],
   providers: [],

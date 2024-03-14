@@ -1,7 +1,7 @@
 import { IsNotEmpty, IsString } from 'class-validator';
 
-export class IsAdmin {
+export class IsAdminDto {
   @IsString()
   @IsNotEmpty({ message: '관계자 비밀번호를 입력해주세요.' })
-  isAdmin: string;
+  AdminPassword: string;
 }

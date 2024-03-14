@@ -6,6 +6,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 
 import { JwtStrategy } from './jwt.strategy';
+import { Passport } from 'passport';
 
 @Module({
   imports: [
@@ -13,6 +14,9 @@ import { JwtStrategy } from './jwt.strategy';
     JwtModule.registerAsync({
       useFactory: (config: ConfigService) => ({
         secret: config.get<string>('JWT_SECRET_KEY'),
+        // signOptions: {
+        //   expiresIn: 3600, //확인필요
+        // },
       }),
       inject: [ConfigService],
     }),

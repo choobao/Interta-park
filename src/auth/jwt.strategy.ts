@@ -5,17 +5,23 @@ import { UserService } from 'src/user/user.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from 'src/user/entities/user.entity';
 
-@Injectable()
+@Injectable() //다른곳에서도 주입해서 사용할수있도록 injectable
 export class JwtStrategy extends PassportStrategy(Strategy) {
+  //passportStrategy 상속시켜줌
   constructor(
     private readonly userService: UserService,
     private readonly configService: ConfigService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      //헤더에 토큰값 확인
       ignoreExpiration: false,
       secretOrKey: configService.get('JWT_SECRET_KEY'),
+      //jwt 토큰이 유효한지 확인
     });
   }
 

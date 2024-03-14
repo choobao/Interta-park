@@ -13,6 +13,9 @@ import {
 
 import { Role } from '../types/userRole.type';
 import { Point } from './point.entity';
+import { boolean } from 'joi';
+import { Ticketings } from 'src/ticket/entities/ticketing.entity';
+import { Concerts } from 'src/concert/entities/concert.entity';
 
 @Index('email', ['email'], { unique: true })
 @Entity({
@@ -20,7 +23,7 @@ import { Point } from './point.entity';
 })
 export class User {
   @PrimaryGeneratedColumn()
-  userId: number;
+  id: number;
 
   @Column({ type: 'varchar', unique: true, nullable: false })
   email: string;
@@ -31,8 +34,8 @@ export class User {
   @Column({ type: 'varchar', nullable: false })
   name: string;
 
-  @Column({ type: 'enum', enum: Role, default: Role.User })
-  role: Role;
+  @Column({ type: 'boolean', default: false })
+  role: boolean;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -43,11 +46,12 @@ export class User {
   @DeleteDateColumn()
   deletedAt?: Date;
 
-  @OneToOne(() => Point)
-  @JoinColumn({ name: 'pointId' })
-  point: Point;
+  @OneToMany(() => Point, (point) => point.user)
+  point: Point[];
 
-  // @OneToOne(() => Point, (point) => point.user, { cascade: true })
-  // point: Point;
-  //유저와 유저포인트는 1:1 관계
+  @OneToMany(() => Ticketings, (ticket) => ticket.user)
+  ticket: Ticketings[];
+
+  @OneToMany(() => Concerts, (concert) => concert.user)
+  concert: Concerts[];
 }
