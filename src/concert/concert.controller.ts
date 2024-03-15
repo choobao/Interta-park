@@ -5,6 +5,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Query,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -18,6 +19,7 @@ import { createSeatDto } from './dto/create-seat';
 import { SearchDto } from './dto/search-concert';
 import { Roles } from 'src/auth/roles.decorator';
 import { Role } from 'src/user/types/userRole.type';
+import { PaginationPostDto } from './dto/paginate-post.dto';
 
 @Controller('concert')
 export class ConcertController {
@@ -74,10 +76,10 @@ export class ConcertController {
   async changeStatus() {}
 
   //공연 목록 보기
+  //페이지네이션
   @Get()
-  async GetConcert() {
-    const concertData = await this.concertService.GetConcert();
-    return concertData;
+  async GetConcert(@Query() query: PaginationPostDto) {
+    return this.concertService.pagenateConcerts(query);
   }
 
   //공연 검색(공연명 검색)

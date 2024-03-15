@@ -5,11 +5,19 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Seats } from './entities/seat.entity';
-import { ILike, Like, QueryRunner, Repository } from 'typeorm';
+import {
+  DriverPackageNotInstalledError,
+  ILike,
+  Like,
+  MoreThan,
+  QueryRunner,
+  Repository,
+} from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { Concerts } from './entities/concert.entity';
 import { Role } from './types/concertRole.types';
 import { role } from './types/seatRole.types';
+import { PaginationPostDto } from './dto/paginate-post.dto';
 
 @Injectable()
 export class ConcertService {
@@ -45,6 +53,63 @@ export class ConcertService {
 
   //공연 status 변경(어드민만 가능)
   async changeStatus() {}
+
+  //페이지네이션 함수, 오름차순만 구현해봅시다
+  async pagenateConcerts(dto: PaginationPostDto) {
+    const concerts = await this.concertRepository.find({
+      where: {
+        id: MoreThan(dto.where__id_more_than ?? 0),
+        //더 크다 / 더 많다, 만약 값이 안들어와있다면 0으로 셋팅
+      },
+      order: {
+        createdAt: dto.order__createdAt,
+      },
+      take: dto.take,
+      select: ['id', 'title', 'category', 'date', 'location', 'status'],
+    });
+
+    if (!concerts) {
+      throw new NotFoundException('현재 진행중인 공연이 없습니다.');
+    }
+
+    //해당되는 콘서트가 0개 이상이면 마지막 포스트를 가져오고
+    //아니면 null 반환
+    const lastItem = concerts.length > 0 ? concerts[concerts.length - 1] : null;
+
+    const nextUrl = lastItem && new URL(`localhost:3000/concert`);
+    // const nextUrl = lastItem && new URL(`${PROTOCOL}://${HOST}/concert`);
+
+    if (nextUrl) {
+      //dto의 키값을 루핑하면서 키값에 해당하는 밸류가 존재하면
+      //params에 그대로 넣는다.
+      //단, whre__id_more_than 값만 lastItem의 마지막 값으로 넣어준다.
+      for (const key of Object.keys(dto)) {
+        if (dto[key]) {
+          if (key !== 'where__id_more_than') {
+            nextUrl.searchParams.append(key, lastItem.id.toString());
+          }
+        }
+      }
+      nextUrl.searchParams.append(
+        'where__id_more_than',
+        lastItem.id.toString(),
+      );
+    }
+    //Response
+    //data: Data[],
+    //cursor:{ after: 마지막 Data의 Id},
+    //count: 응답한 데이터의 갯수
+    //next: 다음 요청을 할 때 사용할 URL
+
+    return {
+      data: concerts,
+      cursor: {
+        after: lastItem?.id,
+      },
+      count: concerts.length,
+      next: nextUrl?.toString(),
+    };
+  }
 
   //공연 목록 보기
   async GetConcert() {

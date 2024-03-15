@@ -47,6 +47,15 @@ export class Concerts {
   @Column({ type: 'enum', enum: Role, default: Role.preparation })
   status: Role;
 
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @DeleteDateColumn()
+  deletedAt?: Date;
+
   //concerts와 seats는 1:N
   @OneToMany(() => Seats, (seat) => seat.concert)
   seat: Seats[];
