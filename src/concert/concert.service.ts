@@ -7,7 +7,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Seats } from './entities/seat.entity';
 import {
   DriverPackageNotInstalledError,
+  FindOptionsWhere,
   ILike,
+  LessThan,
   Like,
   MoreThan,
   QueryRunner,
@@ -56,11 +58,16 @@ export class ConcertService {
 
   //페이지네이션 함수, 오름차순만 구현해봅시다
   async pagenateConcerts(dto: PaginationPostDto) {
+    const where: FindOptionsWhere<Concerts> = {};
+
+    if (dto.where__id_less_than) {
+      where.id = LessThan(dto.where__id_less_than);
+    } else if (dto.where__id_more_than) {
+      where.id = MoreThan(dto.where__id_more_than);
+    }
+
     const concerts = await this.concertRepository.find({
-      where: {
-        id: MoreThan(dto.where__id_more_than ?? 0),
-        //더 크다 / 더 많다, 만약 값이 안들어와있다면 0으로 셋팅
-      },
+      where,
       order: {
         createdAt: dto.order__createdAt,
       },
@@ -74,7 +81,10 @@ export class ConcertService {
 
     //해당되는 콘서트가 0개 이상이면 마지막 포스트를 가져오고
     //아니면 null 반환
-    const lastItem = concerts.length > 0 ? concerts[concerts.length - 1] : null;
+    const lastItem =
+      concerts.length > 0 && concerts.length === dto.take
+        ? concerts[concerts.length - 1]
+        : null;
 
     const nextUrl = lastItem && new URL(`localhost:3000/concert`);
     // const nextUrl = lastItem && new URL(`${PROTOCOL}://${HOST}/concert`);
@@ -85,15 +95,20 @@ export class ConcertService {
       //단, whre__id_more_than 값만 lastItem의 마지막 값으로 넣어준다.
       for (const key of Object.keys(dto)) {
         if (dto[key]) {
-          if (key !== 'where__id_more_than') {
+          if (key !== 'where__id_more_than' && key !== 'where__id_less_than') {
             nextUrl.searchParams.append(key, lastItem.id.toString());
           }
         }
       }
-      nextUrl.searchParams.append(
-        'where__id_more_than',
-        lastItem.id.toString(),
-      );
+      let key = null;
+
+      if (dto.order__createdAt === 'ASC') {
+        key = 'where__id_more_than';
+      } else {
+        key = 'where__id_less_than';
+      }
+
+      nextUrl.searchParams.append(key, lastItem.id.toString());
     }
     //Response
     //data: Data[],
@@ -104,10 +119,10 @@ export class ConcertService {
     return {
       data: concerts,
       cursor: {
-        after: lastItem?.id,
+        after: lastItem?.id ?? null,
       },
       count: concerts.length,
-      next: nextUrl?.toString(),
+      next: nextUrl?.toString() ?? null,
     };
   }
 
